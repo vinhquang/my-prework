@@ -8,7 +8,7 @@
 
 import UIKit
 
-class SettingViewController: UIViewController {
+class SettingViewController: UIViewController, UITextFieldDelegate {
 
     @IBOutlet weak var option1Field: UITextField!
     @IBOutlet weak var option2Field: UITextField!
@@ -22,7 +22,10 @@ class SettingViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        self.option1Field.delegate = self
+        self.option2Field.delegate = self
+        self.option3Field.delegate = self
         // Do any additional setup after loading the view.
     }
 
@@ -70,5 +73,54 @@ class SettingViewController: UIViewController {
 
     @IBAction func onTap(sender: AnyObject) {
         view.endEditing(true)
+    }
+    
+    func textField(textField: UITextField, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool {
+        
+        var currentString = ""
+        switch textField {
+        case option1Field:
+            currentString = option1Field.text!
+        case option2Field:
+            currentString = option2Field.text!
+        case option3Field:
+            currentString = option3Field.text!
+        default:
+            currentString = ""
+        }
+        
+        switch string {
+        case "0","1","2","3","4","5","6","7","8","9":
+            currentString += string
+        case ".":
+            let array = currentString.characters.map {String($0)}
+            var decimalCount = 0
+            
+            for character in array {
+                if character == "." {
+                    decimalCount+=1
+                }
+            }
+            
+            if decimalCount == 0 {
+                currentString += string
+            }
+        default:
+            let array = string.characters.map {String($0)}
+            var currentStringArray = currentString.characters.map {String($0)}
+            
+            if array.count == 0 && currentStringArray.count != 0 {
+                currentStringArray.removeLast()
+                currentString = ""
+                
+                for character in currentStringArray {
+                    currentString += String(character)
+                }
+            }
+        }
+        
+        textField.text = currentString
+        
+        return false
     }
 }

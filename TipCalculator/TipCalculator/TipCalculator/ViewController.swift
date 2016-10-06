@@ -8,12 +8,14 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, UITextFieldDelegate {
 
     @IBOutlet weak var tipLabel: UILabel!
     @IBOutlet weak var totalLabel: UILabel!
     @IBOutlet weak var billField: UITextField!
     @IBOutlet weak var tipSegmented: UISegmentedControl!
+
+    var currentString = ""
     
     let defaults = NSUserDefaults.standardUserDefaults()
     var tipPercentages = [15.00, 20.00, 30.00]
@@ -22,6 +24,8 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        
+        self.billField.delegate = self
 
         defaults.removeObjectForKey("tip_percent_1")
         defaults.removeObjectForKey("tip_percent_2")
@@ -80,6 +84,44 @@ class ViewController: UIViewController {
         vc.modalPresentationStyle = UIModalPresentationStyle.Custom
         vc.transitioningDelegate = self
     }
+
+    func textField(textField: UITextField, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool {
+        
+        switch string {
+        case "0","1","2","3","4","5","6","7","8","9":
+            currentString += string
+        case ".":
+            let array = currentString.characters.map {String($0)}
+            var decimalCount = 0
+
+            for character in array {
+                if character == "." {
+                    decimalCount+=1
+                }
+            }
+            
+            if decimalCount == 0 {
+                currentString += string
+            }
+        default:
+            let array = string.characters.map {String($0)}
+            var currentStringArray = currentString.characters.map {String($0)}
+
+            if array.count == 0 && currentStringArray.count != 0 {
+                currentStringArray.removeLast()
+                currentString = ""
+                
+                for character in currentStringArray {
+                    currentString += String(character)
+                }
+            }
+        }
+        
+        billField.text = currentString
+        calculateTip(self)
+        
+        return false
+    }
 }
 
 extension ViewController: UIViewControllerTransitioningDelegate {
@@ -118,7 +160,7 @@ extension ViewController: UIViewControllerAnimatedTransitioning {
         if isPresenting! {
             toVC.view.alpha = 0
             
-            containerView?.addSubview(toVC.view)
+            containerView.addSubview(toVC.view)
             UIView.animateWithDuration(1, animations: {
                 toVC.view.alpha = 1
             }) { (finished) -> Void in
